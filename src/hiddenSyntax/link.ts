@@ -128,7 +128,7 @@ export function footnoteDefinitionSyntax(node: SyntaxNodeRef, state: EditorState
   };
 }
 
-function inheritedHighlightTags(node: SyntaxNode) {
+export function inheritedHighlightTags(node: SyntaxNode) {
   const path: SyntaxNode[] = [];
   for (let current: SyntaxNode | null = node; current !== null; current = current.parent) {
     path.unshift(current);

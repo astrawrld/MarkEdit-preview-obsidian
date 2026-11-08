@@ -8,7 +8,7 @@ import { unorderedListBullets } from './components/bullet';
 import { taskCheckboxes } from './components/task';
 import { LinkIconWidget } from './components/icon';
 import { FootnoteDefinitionSuffix } from './components/footnote';
-import { InlineImageWidget } from './components/image';
+import { InlineImageWidget, WikilinkImageWidget } from './components/image';
 import { HtmlWidget } from './components/html';
 import { renderedBlockDecorations } from './block';
 import { inlineRenderingConfig } from './config';
@@ -16,7 +16,8 @@ import { fencedCodeDecorations } from './fencedCode';
 import { atxHeadingSyntaxRange, setextHeadingSyntaxLine } from './heading';
 import { horizontalRuleDecoration } from './horizontalRule';
 import { inlineSyntaxDecorations } from './inline';
-import { footnoteReferences, footnoteDefinitionSyntax, linkSyntax, referenceDestinationResolver } from './link';
+import { footnoteReferences, footnoteDefinitionSyntax, inheritedHighlightTags, linkSyntax, referenceDestinationResolver } from './link';
+import { wikilinkSyntax } from './wikilink';
 import { hiddenSyntaxTheme } from './theme';
 import { unorderedListSyntax } from './unorderedList';
 import { correctedLineUp, correctedLineEnd, revealedSyntax, selectionReveals, inlineSyntaxRevealed, stablePointerSelection } from './selection';
@@ -146,6 +147,32 @@ function hiddenSyntaxDecorations(view: EditorView) {
               ),
               side: -1,
             }).range(link.label.to));
+          }
+        }
+
+        // [[Wikilink]], [[Note|alias]], ![[image.png|300]] or ![[Note]], parsed by MarkEdit-wikilinks
+        const wikilink = link === undefined ? wikilinkSyntax(node, view.state) : undefined;
+        const wikilinkRevealed = wikilink?.embed ? selectionReveals : inlineSyntaxRevealed;
+        if (wikilink !== undefined && !wikilinkRevealed(view.state, node.from, node.to)) {
+          if (renderInlineImages && wikilink.image) {
+            ranges.push(Decoration.replace({
+              widget: new WikilinkImageWidget(wikilink.path, wikilink.alt, wikilink.width, wikilink.height),
+            }).range(node.from, node.to));
+          } else {
+            wikilink.hidden
+              .filter(range => range.to > range.from)
+              .forEach(range => ranges.push(hiddenSyntax.range(range.from, range.to)));
+            ranges.push((wikilink.embed ? hiddenImageLabel : hiddenLinkLabel).range(wikilink.label.from, wikilink.label.to));
+            ranges.push(Decoration.widget({
+              widget: new LinkIconWidget(
+                wikilink.image ? 'image' : 'wikilink',
+                view.state,
+                wikilink.image ? wikilink.path : wikilink.target,
+                view.state.sliceDoc(wikilink.label.from, wikilink.label.to),
+                inheritedHighlightTags(node.node),
+              ),
+              side: -1,
+            }).range(wikilink.label.to));
           }
         }
 

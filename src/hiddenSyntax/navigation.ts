@@ -1,8 +1,10 @@
 import { EditorSelection, type SelectionRange } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { ensureSyntaxTree } from '@codemirror/language';
+import { MarkEdit } from 'markedit-api';
 import { footnoteReferences } from './link';
 import { headingLineForAnchor } from '../render';
+import { resolveWikilink } from '../features/vault';
 import { playSystemBeep } from '../shared/utils';
 
 const unsafeProtocol = /^(?:vbscript|javascript|file|data):/;
@@ -16,6 +18,19 @@ export function openLinkDestination(destination: string) {
 
   window.open(destination, '_blank', 'noopener');
   return true;
+}
+
+/**
+ * Open the note a wikilink or note embed leads to, found the same way the preview finds it.
+ */
+export async function followWikilink(target: string) {
+  const path = await resolveWikilink(target);
+  if (path === undefined || typeof MarkEdit.openFile !== 'function') {
+    playSystemBeep();
+    return false;
+  }
+
+  return MarkEdit.openFile(path);
 }
 
 export async function followFootnote(view: EditorView, label: string, direction: 'definition' | 'reference' = 'definition') {

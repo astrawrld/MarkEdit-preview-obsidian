@@ -95,6 +95,38 @@ export async function resolveVaultLinks(container: HTMLElement, isCurrent: () =>
   }
 }
 
+/**
+ * Where an image embed's file is, relative to the current note, for loading it with `image-loader://`.
+ *
+ * Returns undefined when it can't be found or resolution isn't available, e.g. in Quick Look.
+ */
+export async function resolveEmbedSource(target: string) {
+  const resolved = await resolveFromCurrentNote(target, false);
+  return resolved?.path === undefined ? undefined : relativePath(resolved.noteFolder, resolved.path);
+}
+
+/**
+ * The absolute path of the note a wikilink leads to, or undefined when it can't be found.
+ */
+export async function resolveWikilink(target: string) {
+  return (await resolveFromCurrentNote(target, true))?.path;
+}
+
+async function resolveFromCurrentNote(target: string, isNote: boolean) {
+  if (typeof MarkEdit.listFiles !== 'function' || typeof MarkEdit.getFileInfo !== 'function') {
+    return undefined;
+  }
+
+  const fileInfo = await MarkEdit.getFileInfo();
+  if (fileInfo === undefined) {
+    return undefined;
+  }
+
+  const noteFolder = fileInfo.parentPath || dirname(fileInfo.filePath);
+  const { path } = await (await createResolver(noteFolder)).resolve(target, isNote);
+  return { noteFolder, path };
+}
+
 export interface Resolution {
   // Absolute path of the file, when found
   path?: string;

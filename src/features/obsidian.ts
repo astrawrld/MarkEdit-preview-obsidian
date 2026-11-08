@@ -314,7 +314,7 @@ type EmbedMeta = { target: string; label?: string; width?: string; height?: stri
 
 const imageExtensions = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'bmp', 'ico', 'heic']);
 
-function isImagePath(path: string) {
+export function isImagePath(path: string) {
   const extension = path.split('.').pop()?.toLowerCase() ?? '';
   return path.includes('.') && imageExtensions.has(extension);
 }

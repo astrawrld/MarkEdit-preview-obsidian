@@ -74,6 +74,8 @@ Image embeds and wikilinks are resolved across the vault the same way MarkEdit-w
 
 In Quick Look, where other extensions don't run, wikilinks are rendered as links in the preview and highlighted in the source view (macOS 14.2 or later).
 
+In Mixed mode, wikilinks hide their brackets like regular links: `[[Note|alias]]` shows only "alias", and the full syntax comes back when the cursor enters it. The link button opens the note, found the same way as in the preview. Image embeds like `![[image.png|300]]` show the image inline when `inlineRendering` includes `"image"`. Plain wikilinks need MarkEdit-wikilinks, whose parser recognizes them; embeds work without it.
+
 ## Styling
 
 This extension applies the [github-markdown](https://github.com/sindresorhus/github-markdown-css) styling. You can customize the appearance by following the [customization](https://github.com/MarkEdit-app/MarkEdit/wiki/Customization) guidelines.

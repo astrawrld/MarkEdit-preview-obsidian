@@ -1,6 +1,6 @@
 {
   "name": "markedit-preview-obsidian",
-  "version": "1.14.1-obsidian.2",
+  "version": "1.14.1-obsidian.3",
   "description": "Markdown preview for MarkEdit, with Obsidian flavored markdown. Fork of MarkEdit-preview.",
   "homepage": "https://github.com/astrawrld/MarkEdit-preview-obsidian",
   "scripts": {

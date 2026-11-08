@@ -3,7 +3,7 @@ import { highlightingFor } from '@codemirror/language';
 import { WidgetType } from '@codemirror/view';
 import type { EditorView } from '@codemirror/view';
 import type { Tag } from '@lezer/highlight';
-import { followFootnote, followLinkAnchor, openLinkDestination } from '../navigation';
+import { followFootnote, followLinkAnchor, followWikilink, openLinkDestination } from '../navigation';
 import { playSystemBeep } from '../../shared/utils';
 import { localized } from '../../shared/strings';
 
@@ -17,7 +17,7 @@ export class LinkIconWidget extends WidgetType {
   private readonly highlightClasses: string;
 
   constructor(
-    private readonly kind: keyof typeof icons | 'footnote',
+    private readonly kind: keyof typeof icons | 'footnote' | 'wikilink',
     state: EditorState,
     private readonly destination: string,
     private readonly label: string,
@@ -38,13 +38,15 @@ export class LinkIconWidget extends WidgetType {
         .replace('%s', () => this.destination.slice(1))
       : this.destination;
 
-    icon.innerHTML = icons[this.kind === 'footnote' ? 'link' : this.kind];
+    icon.innerHTML = icons[this.kind === 'footnote' || this.kind === 'wikilink' ? 'link' : this.kind];
     icon.setAttribute('aria-label', icon.title || this.label);
 
     icon.addEventListener('click', event => {
       event.stopPropagation();
       if (this.kind === 'footnote') {
         followFootnote(view, this.destination);
+      } else if (this.kind === 'wikilink') {
+        void followWikilink(this.destination);
       } else if (this.kind === 'footnoteBack') {
         followFootnote(view, this.destination, 'reference');
       } else if (this.destination.startsWith('#')) {

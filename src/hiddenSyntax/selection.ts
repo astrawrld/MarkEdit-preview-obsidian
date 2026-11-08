@@ -4,6 +4,7 @@ import { type Command, Direction, EditorView, keymap } from '@codemirror/view';
 import type { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { linkSyntax, referenceDestinationResolver } from './link';
 import { inlineSyntax } from './inline';
+import { wikilinkSyntax } from './wikilink';
 import { renderedBlockDecorations } from './block';
 
 type SyntaxRange = { from: number; to: number };
@@ -242,6 +243,10 @@ function insideReplacement(view: EditorView, node: SyntaxNodeRef) {
 }
 
 function revealableSyntax(node: SyntaxNodeRef, state: EditorState, resolveDestination: ReturnType<typeof referenceDestinationResolver>) {
+  if (node.name === 'WikiLink') {
+    return wikilinkSyntax(node, state);
+  }
+
   return node.name === 'Link' || node.name === 'Autolink'
     ? linkSyntax(node, state, resolveDestination)
     : inlineSyntax(node);
