@@ -3,6 +3,7 @@ import { MarkEdit } from 'markedit-api';
 import { appendStyle, getBlockRange, getFileExtension, getFileName, joinPaths, selectFullRange, writeClipboard, htmlToPlainText } from './shared/utils';
 import { renderMarkdown, renderMermaid, renderKatex, handlePostRender, applyStyles } from './render';
 import { replaceImageURLs } from './features/image';
+import { resolveVaultLinks } from './features/vault';
 import { hidePreviewButtons, viewModes } from './support/settings';
 import { localized } from './shared/strings';
 import { syncScrollProgress } from './scroll';
@@ -213,6 +214,9 @@ export async function renderHtmlPreview(syncScroll = currentViewMode() !== ViewM
 
   const offset = { top: previewPane.scrollTop, left: previewPane.scrollLeft };
   previewPane.innerHTML = html;
+
+  // Find embedded images and linked notes across the vault, like MarkEdit-wikilinks does
+  void resolveVaultLinks(previewPane, () => renderVersion === states.renderVersion);
 
   const pageZoom = localStorage.getItem(CacheKeys.previewPageZoomKey);
   if (pageZoom !== null) {

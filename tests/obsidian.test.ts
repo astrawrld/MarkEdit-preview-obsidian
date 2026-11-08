@@ -150,8 +150,9 @@ describe('Obsidian block IDs', () => {
 
 describe('Obsidian embeds', () => {
   it('renders image embeds with size', async () => {
-    expect(await render('![[my pic.png]]')).toContain('<img src="my%20pic.png" alt="my pic.png">');
-    expect(await render('![[a.jpg|300]]')).toContain('<img src="a.jpg" alt="a.jpg" width="300">');
+    expect(await render('![[my pic.png]]')).toContain('<img src="my%20pic.png" alt="my pic.png" data-embed-target="my pic.png">');
+    expect(await render('![[a.jpg|300]]')).toContain('<img src="a.jpg" alt="a.jpg" width="300" data-embed-target="a.jpg">');
+    expect(await render('![[a.jpg#section]]')).toContain('data-embed-target="a.jpg"');
     expect(await render('![[a.jpg|300x200]]')).toContain('width="300" height="200"');
     expect(await render('![[a.jpg|A cat]]')).toContain('alt="A cat"');
   });

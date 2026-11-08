@@ -65,10 +65,12 @@ The preview renders [Obsidian flavored markdown](https://help.obsidian.md/syntax
 | `#tag`, `#nested/tag` | Tags |
 | `text ^block-id` | Block IDs, the identifier is hidden and becomes the block's `id` |
 | `[[#Heading]]`, `[[#^block-id]]` | Links within the same note |
-| `![[image.png]]`, `![[image.png\|300]]`, `![[image.png\|300x200]]` | Image embeds, resolved relative to the current file |
+| `![[image.png]]`, `![[image.png\|300]]`, `![[image.png\|300x200]]` | Image embeds, found anywhere in the vault |
 | `![[Note]]` | Note embeds, rendered as links |
 
 Other `[[wikilinks]]` are left as text, so extensions like [MarkEdit-wikilinks](https://github.com/nuc/MarkEdit-wikilinks) can resolve them. Note embeds use the same `me-wikilink` class, so these extensions can open them too.
+
+Image embeds and wikilinks are resolved across the vault the same way MarkEdit-wikilinks does: the current note's folder first, then a vault-relative path, then any file with that name. The vault is the closest folder containing `.obsidian`, `.git` or `.markedit-vault`, and MarkEdit needs [access to it](https://github.com/MarkEdit-app/MarkEdit/wiki/Customization#grant-folder-access). Links to notes that don't exist are shown faded with a dashed underline, and hovering a link shows where it leads.
 
 In Quick Look, where other extensions don't run, wikilinks are rendered as links in the preview and highlighted in the source view (macOS 14.2 or later).
 

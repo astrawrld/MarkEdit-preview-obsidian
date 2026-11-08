@@ -61,7 +61,8 @@ export function obsidianPlugin(md: MarkdownIt, options: { slugify: (text: string
 
     if (isImagePath(path)) {
       const size = [width ? ` width="${width}"` : '', height ? ` height="${height}"` : ''].join('');
-      return `<img src="${escape(md.normalizeLink(path))}" alt="${escape(label ?? path)}"${size}>`;
+      // data-embed-target lets the vault resolver find the image when it isn't next to the note
+      return `<img src="${escape(md.normalizeLink(path))}" alt="${escape(label ?? path)}"${size} data-embed-target="${escape(path)}">`;
     }
 
     return `<a class="me-wikilink obsidian-embed" data-wikilink-target="${escape(target)}" href="#">${escape(label ?? target)}</a>`;
