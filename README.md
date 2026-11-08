@@ -15,7 +15,9 @@ Settings still use the `extension.markeditPreview` key below, so existing settin
 
 ### Syncing with upstream
 
-Run `./scripts/sync-upstream.sh` to merge the latest upstream release, then run the tests and build.
+The [Sync with upstream](.github/workflows/sync-upstream.yml) workflow checks for a new MarkEdit-preview release every day. When there is one, it merges it, runs the checks, rebuilds `dist/`, and opens a pull request. If the merge conflicts with this fork's changes, it opens an issue instead. It can also be started from the Actions tab.
+
+To sync by hand, run `./scripts/sync-upstream.sh [tag]`, then run the tests and rebuild `dist/`.
 
 ---
 

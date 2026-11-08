@@ -1,0 +1,163 @@
+name: Sync with upstream
+
+# Checks MarkEdit-preview for a new release every day. When there is one, merges it
+# with scripts/sync-upstream.sh, runs the checks, rebuilds dist/, and opens a pull
+# request. If the merge conflicts, opens an issue instead. Never pushes to main.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Upstream release tag, e.g. v1.14.2 (defaults to the latest release)'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: sync-upstream
+
+jobs:
+  sync:
+    name: Sync with upstream
+    runs-on: macos-26
+    env:
+      GH_TOKEN: ${{ github.token }}
+      UPSTREAM: MarkEdit-app/MarkEdit-preview
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22.x'
+
+      - name: Find the upstream release
+        id: release
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          tag="${INPUT_TAG:-$(gh api "repos/$UPSTREAM/releases/latest" --jq .tag_name)}"
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unexpected tag: $tag" >&2
+            exit 1
+          fi
+
+          branch="sync/upstream-$tag"
+          skip=false
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "$branch already exists, a sync pull request is pending."
+            skip=true
+          elif [ -n "$(gh issue list --state open --search "in:title \"Upstream $tag needs a manual merge\"" --json number --jq '.[].number')" ]; then
+            echo "An issue for merging $tag is already open."
+            skip=true
+          fi
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+
+      - name: Merge upstream
+        id: merge
+        if: steps.release.outputs.skip == 'false'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          BRANCH: ${{ steps.release.outputs.branch }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$BRANCH"
+
+          set +e
+          scripts/sync-upstream.sh "$TAG" > "$RUNNER_TEMP/merge.log" 2>&1
+          code=$?
+          set -e
+          cat "$RUNNER_TEMP/merge.log"
+
+          if [ "$code" = 2 ]; then
+            sed -n '/^Conflicts that need a manual merge/,$p' "$RUNNER_TEMP/merge.log" | tail -n +2 > "$RUNNER_TEMP/conflicts.txt"
+          fi
+
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+          [ "$code" = 0 ] || [ "$code" = 2 ] || [ "$code" = 3 ]
+
+      - name: Open an issue for conflicts
+        if: steps.merge.outputs.code == '2'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          {
+            echo "Upstream [$TAG](https://github.com/$UPSTREAM/releases/tag/$TAG) conflicts with this fork's changes, so it needs a manual merge."
+            echo
+            echo "Conflicting files:"
+            sed 's/^/- `/; s/$/`/' "$RUNNER_TEMP/conflicts.txt"
+            echo
+            echo "Run \`scripts/sync-upstream.sh $TAG\` locally to see the conflicts, resolve them, then test and build."
+          } > "$RUNNER_TEMP/issue.md"
+          gh issue create --title "Upstream $TAG needs a manual merge" --body-file "$RUNNER_TEMP/issue.md"
+
+      - name: Lint, typecheck and test
+        id: test
+        if: steps.merge.outputs.code == '0'
+        continue-on-error: true
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn typecheck
+          yarn test
+
+      - name: Build
+        id: build
+        if: steps.merge.outputs.code == '0'
+        continue-on-error: true
+        env:
+          VERSION: ${{ steps.merge.outputs.version }}
+        run: |
+          # The build also copies its output into MarkEdit's scripts folder, which runners don't have
+          mkdir -p ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts
+          npx vite build
+          LITE_BUILD=true npx vite build
+          git add dist
+          git diff --cached --quiet || git commit --quiet -m "Build $VERSION"
+
+      - name: Open a pull request
+        if: steps.merge.outputs.code == '0'
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          BRANCH: ${{ steps.release.outputs.branch }}
+          VERSION: ${{ steps.merge.outputs.version }}
+          TEST: ${{ steps.test.outcome }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          git push --quiet origin "$BRANCH"
+
+          draft=()
+          if [ "$TEST" = success ] && [ "$BUILD" = success ]; then
+            status="✅ Merged cleanly. Lint, typecheck and tests passed, and \`dist/\` was rebuilt."
+          else
+            draft=(--draft)
+            status="❌ Merged cleanly, but lint, typecheck or tests (\`$TEST\`) or the build (\`$BUILD\`) failed. See the [workflow run]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)."
+          fi
+
+          {
+            echo "Merges upstream [$TAG](https://github.com/$UPSTREAM/releases/tag/$TAG) as **$VERSION**."
+            echo
+            echo "$status"
+            echo
+            echo "After merging:"
+            echo "- [ ] Create the release \`v$VERSION\` with \`dist/markedit-preview-obsidian.js\` attached"
+            echo "- [ ] Add the version to \`extensions/markedit-preview-obsidian.json\` in MarkEdit-app/extensions"
+          } > "$RUNNER_TEMP/pr.md"
+
+          gh pr create --base main --head "$BRANCH" --title "Sync with upstream $TAG" --body-file "$RUNNER_TEMP/pr.md" "${draft[@]}"
+
+          # Pull requests opened by this workflow don't trigger other workflows, so start the checks directly
+          gh workflow run lint-and-test.yml --ref "$BRANCH"
