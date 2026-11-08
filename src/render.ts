@@ -3,13 +3,13 @@ import anchor from 'markdown-it-anchor';
 import mila from 'markdown-it-link-attributes';
 import footnote from 'markdown-it-footnote';
 import tasklist from 'markdown-it-task-lists';
-import githubAlerts from 'markdown-it-github-alerts';
 
 import { MarkEdit } from 'markedit-api';
 import { createFrontMatterPlugin } from './features/frontMatter';
 import { findAnchorTarget, headingAnchors } from './features/anchors';
+import { obsidianPlugin } from './features/obsidian';
 import { loadMermaid, renderMermaidDiagrams } from './features/mermaid';
-import { coreCss, previewThemeCss, alertsCss, hljsCss, codeCopyCss } from './styling';
+import { coreCss, previewThemeCss, alertsCss, obsidianCss, hljsCss, codeCopyCss } from './styling';
 import { localized } from './shared/strings';
 import { hasFullHost } from './support/host';
 import { syntaxAutoDetect, styledHtmlColorScheme, mathDelimiters, markdownItPreset, markdownItOptions, mermaidLightTheme, mermaidDarkTheme } from './support/settings';
@@ -113,6 +113,7 @@ export async function applyStyles(html: string) {
     stylify(coreCss(styledHtmlColorScheme)),
     stylify(previewThemeCss(styledHtmlColorScheme)),
     stylify(alertsCss(styledHtmlColorScheme)),
+    stylify(obsidianCss()),
     stylify(codeCopyCss()),
     '</body></html>',
   ];
@@ -182,7 +183,9 @@ const pluginInits: Promise<void>[] = [];
 mdit.use(createFrontMatterPlugin());
 
 // Link attributes
-mdit.use(anchor);
+// Same as markdown-it-anchor's default, shared with `[[#Heading]]` links
+const slugify = (text: string) => encodeURIComponent(String(text).trim().toLowerCase().replace(/\s+/g, '-'));
+mdit.use(anchor, { slugify });
 mdit.use(headingAnchors);
 mdit.use(mila, {
   matcher: (href: string) => !href.startsWith('#'),
@@ -195,7 +198,8 @@ mdit.use(mila, {
 // Extended syntaxes
 mdit.use(footnote);
 mdit.use(tasklist, { enabled: hasFullHost(), label: true });
-mdit.use(githubAlerts);
+// Lite hosts like Quick Look can't run MarkEdit-wikilinks, render wikilinks here instead
+mdit.use(obsidianPlugin, { slugify, renderWikilinks: !hasFullHost() });
 
 // Highlight.js and KaTeX, for full builds only
 if (__FULL_BUILD__) {
@@ -216,6 +220,7 @@ const blockTypes = new Set([
   'paragraph_open',
   'heading_open',
   'blockquote_open',
+  'callout_open',
   'list_item_open',
   'bullet_list_open',
   'ordered_list_open',

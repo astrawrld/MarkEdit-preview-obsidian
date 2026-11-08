@@ -1,0 +1,108 @@
+/* Obsidian flavored markdown, theme colors come from the active preview theme when available */
+
+.markdown-body .markdown-alert {
+  --callout-color: var(--fgColor-accent, #0969da);
+  border-left-color: var(--callout-color);
+}
+
+.markdown-body .markdown-alert .markdown-alert-title {
+  color: var(--callout-color);
+  gap: 0.5rem;
+}
+
+.markdown-body .markdown-alert .markdown-alert-title .octicon {
+  flex-shrink: 0;
+  margin-right: 0;
+  fill: currentColor;
+}
+
+.markdown-body .markdown-alert .markdown-alert-title svg[fill="none"] {
+  fill: none;
+}
+
+.markdown-body .markdown-alert .markdown-alert-title p {
+  display: inline;
+}
+
+.markdown-body .markdown-alert-note { --callout-color: var(--fgColor-accent, #0969da); }
+.markdown-body .markdown-alert-info { --callout-color: var(--fgColor-accent, #0969da); }
+.markdown-body .markdown-alert-todo { --callout-color: var(--fgColor-accent, #0969da); }
+.markdown-body .markdown-alert-abstract { --callout-color: #00a8a5; }
+.markdown-body .markdown-alert-tip { --callout-color: var(--fgColor-success, #1a7f37); }
+.markdown-body .markdown-alert-success { --callout-color: var(--fgColor-success, #1a7f37); }
+.markdown-body .markdown-alert-important { --callout-color: var(--fgColor-done, #8250df); }
+.markdown-body .markdown-alert-question { --callout-color: #e07000; }
+.markdown-body .markdown-alert-warning { --callout-color: var(--fgColor-attention, #9a6700); }
+.markdown-body .markdown-alert-caution { --callout-color: var(--fgColor-danger, #d1242f); }
+.markdown-body .markdown-alert-failure { --callout-color: var(--fgColor-danger, #d1242f); }
+.markdown-body .markdown-alert-danger { --callout-color: var(--fgColor-danger, #d1242f); }
+.markdown-body .markdown-alert-bug { --callout-color: var(--fgColor-danger, #d1242f); }
+.markdown-body .markdown-alert-example { --callout-color: #7852ee; }
+.markdown-body .markdown-alert-quote { --callout-color: var(--fgColor-muted, #59636e); }
+
+/* Foldable callouts: > [!faq]- Title */
+.markdown-body details.markdown-alert > summary.markdown-alert-title {
+  cursor: pointer;
+  list-style: none;
+  margin-bottom: 0;
+}
+
+.markdown-body details.markdown-alert > summary.markdown-alert-title::-webkit-details-marker {
+  display: none;
+}
+
+.markdown-body details.markdown-alert > summary.markdown-alert-title::after {
+  content: "";
+  width: 0.4em;
+  height: 0.4em;
+  margin-left: 0.25rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.1s ease;
+}
+
+.markdown-body details.markdown-alert[open] > summary.markdown-alert-title {
+  margin-bottom: var(--base-size-16, 16px);
+}
+
+.markdown-body details.markdown-alert[open] > summary.markdown-alert-title::after {
+  transform: rotate(45deg);
+}
+
+/* Highlights: ==text== */
+.markdown-body mark {
+  background-color: rgba(255, 208, 0, 0.4);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Tags: #tag */
+.markdown-body .tag {
+  display: inline-block;
+  padding: 0 0.5em;
+  border-radius: 1em;
+  font-size: 0.875em;
+  line-height: 1.6;
+  color: var(--fgColor-accent, #0969da);
+  background-color: color-mix(in srgb, var(--fgColor-accent, #0969da) 12%, transparent);
+}
+
+/* Note embeds: ![[Note]] */
+.markdown-body a.obsidian-embed {
+  display: block;
+  padding: 0.5em 1em;
+  margin-bottom: var(--base-size-16, 16px);
+  border-left: 0.25em solid var(--fgColor-accent, #0969da);
+  background-color: color-mix(in srgb, var(--fgColor-accent, #0969da) 6%, transparent);
+}
+
+.markdown-body a.obsidian-embed::before {
+  content: "↪ ";
+}
+
+/* Block IDs: ^block-id, highlight when navigated to */
+.markdown-body [id^="^"]:target {
+  background-color: rgba(255, 208, 0, 0.2);
+}

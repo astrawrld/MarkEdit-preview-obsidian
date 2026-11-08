@@ -9,6 +9,7 @@ export default defineConfig({
   },
   define: {
     __PKG_VERSION__: JSON.stringify('test'),
+    __PKG_HOMEPAGE__: JSON.stringify('https://example.com'),
     __FULL_BUILD__: JSON.stringify(true),
     __MERMAID_VERSION__: JSON.stringify(mermaidPackage.version),
   },

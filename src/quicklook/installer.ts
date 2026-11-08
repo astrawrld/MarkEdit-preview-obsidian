@@ -1,7 +1,8 @@
 import { MarkEdit } from 'markedit-api';
 import { joinPaths, parseJSON } from '../shared/utils';
 
-const METADATA_KEY = 'markedit-preview';
+// Distinct from the original extension, so the two never share Quick Look metadata
+const METADATA_KEY = 'markedit-preview-obsidian';
 const DEFAULT_FILE_NAME = `${METADATA_KEY}.js`;
 
 /**
@@ -21,7 +22,7 @@ export function shouldCopy(params: {
 }
 
 /**
- * Copy the deployed `markedit-preview.js` from the app's documents folder
+ * Copy the deployed `markedit-preview-obsidian.js` from the app's documents folder
  * to the App Group shared container, so the Quick Look Extension can load it.
  *
  * Skipped when the stored version matches `__PKG_VERSION__` and the deployed
@@ -78,7 +79,7 @@ export async function copyToSharedContainer() {
       isDirectory: true,
     });
 
-    // markedit-preview.js file
+    // markedit-preview-obsidian.js file
     await MarkEdit.createFile({
       path: destPath,
       string: sourceFile,

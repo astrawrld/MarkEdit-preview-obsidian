@@ -1,4 +1,26 @@
-# MarkEdit-preview
+# MarkEdit-preview-obsidian
+
+A fork of [MarkEdit-preview](https://github.com/MarkEdit-app/MarkEdit-preview) that adds [Obsidian flavored markdown](#obsidian-syntax) to the preview, and wikilink support in Quick Look. Everything else follows upstream releases.
+
+Upstream intentionally doesn't support non-standard syntax ([discussion](https://github.com/MarkEdit-app/MarkEdit-preview/issues/219)), so this fork is maintained separately. Please report fork-specific issues here, not upstream.
+
+### Installing the fork
+
+1. Remove the original `markedit-preview.js` from MarkEdit's scripts folder (`~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/`). The two can't run at the same time.
+2. Also remove `markedit-preview.js` from Quick Look's folder (`~/Library/Group Containers/group.app.cyan.markedit/Shared/scripts/`), if it's there.
+3. Run `yarn install && yarn build` from your own Terminal app, or copy `dist/markedit-preview-obsidian.js` into the scripts folder with Finder.
+4. Restart MarkEdit.
+
+Settings still use the `extension.markeditPreview` key below, so existing settings keep working.
+
+### Syncing with upstream
+
+Run `./scripts/sync-upstream.sh` to merge the latest upstream release, then run the tests and build.
+
+---
+
+_Original README:_
+
 
 Markdown view modes for [MarkEdit](https://github.com/MarkEdit-app/MarkEdit) that leverage [markedit-api](https://github.com/MarkEdit-app/MarkEdit-api).
 
@@ -27,6 +49,26 @@ Choose a mode from `Extensions` > `View Mode`, or use the keyboard shortcut <kbd
 To display local images, please ensure you're using MarkEdit 1.24.0 or later and follow [the guide](https://github.com/MarkEdit-app/MarkEdit/wiki/Customization#grant-folder-access) to grant file access.
 
 This extension also exposes global functions, `MarkEditGetHtml(styled: boolean) => Promise<string>` and `MarkEditRenderHtml(markdown: string, styled: boolean) => Promise<string>`, allowing other extensions or scripts to easily generate the rendered HTML — either from the current document or from arbitrary markdown input.
+
+## Obsidian Syntax
+
+The preview renders [Obsidian flavored markdown](https://help.obsidian.md/syntax) in addition to GitHub flavored markdown:
+
+| Syntax | Rendering |
+|---|---|
+| `> [!faq] Title` | Callouts, with all Obsidian types and aliases, and markdown in titles; GitHub alerts keep working |
+| `> [!tip]-` / `> [!tip]+` | Foldable callouts, collapsed or expanded by default |
+| `==text==` | Highlights |
+| `%%comment%%` | Comments, inline or spanning multiple lines |
+| `#tag`, `#nested/tag` | Tags |
+| `text ^block-id` | Block IDs, the identifier is hidden and becomes the block's `id` |
+| `[[#Heading]]`, `[[#^block-id]]` | Links within the same note |
+| `![[image.png]]`, `![[image.png\|300]]`, `![[image.png\|300x200]]` | Image embeds, resolved relative to the current file |
+| `![[Note]]` | Note embeds, rendered as links |
+
+Other `[[wikilinks]]` are left as text, so extensions like [MarkEdit-wikilinks](https://github.com/nuc/MarkEdit-wikilinks) can resolve them. Note embeds use the same `me-wikilink` class, so these extensions can open them too.
+
+In Quick Look, where other extensions don't run, wikilinks are rendered as links in the preview and highlighted in the source view (macOS 14.2 or later).
 
 ## Styling
 

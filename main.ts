@@ -90,7 +90,7 @@ if (hasFullHost()) {
       { separator: true },
       {
         title: `${localized('version')} ${__PKG_VERSION__}`,
-        action: () => open(`https://github.com/MarkEdit-app/MarkEdit-preview/releases/tag/v${__PKG_VERSION__}`),
+        action: () => open(`${__PKG_HOMEPAGE__}/releases/tag/v${__PKG_VERSION__}`),
       },
     ],
   });

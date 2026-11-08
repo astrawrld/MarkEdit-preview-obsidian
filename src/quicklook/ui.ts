@@ -1,6 +1,7 @@
 import { createToolbar } from './toolbar';
 import { currentMode, saveMode } from './mode';
 import { getEditorText } from './editor';
+import { highlightSourceWikilinks } from './wikilinks';
 import {
   interceptForceTouch,
   interceptPinchZoom,
@@ -66,6 +67,7 @@ export function setUpQuickLook(previewPane: HTMLElement) {
   interceptDragging(currentMode, previewPane);
   interceptWheelEvent(currentMode, previewPane, toolbar);
   interceptPreviewCopy(previewPane);
+  highlightSourceWikilinks();
 }
 
 interface ViewContext {

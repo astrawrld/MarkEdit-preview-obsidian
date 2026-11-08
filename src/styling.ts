@@ -29,6 +29,7 @@ import hljsBase from '../styles/hljs/base.css?raw';
 import hljsDark from '../styles/hljs/dark.css?raw';
 
 import codeCopyBase from '../styles/code-copy/base.css?raw';
+import obsidianBase from '../styles/obsidian/base.css?raw';
 
 export type PreviewTheme = typeof previewThemeNames[number];
 
@@ -118,6 +119,10 @@ export function alertsCss(colorScheme: ColorScheme = 'auto') {
 
 export function hljsCss(colorScheme: ColorScheme = 'auto') {
   return createCss(colorScheme, hljsBase, hljsDark).join('\n');
+}
+
+export function obsidianCss() {
+  return showRawHtml ? '' : obsidianBase;
 }
 
 export function codeCopyCss() {

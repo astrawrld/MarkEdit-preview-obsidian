@@ -28,6 +28,7 @@ const requireShim = '"use strict";' + transformSync(readFileSync(shimPath, 'utf8
 export default defineConfig(mergeConfig(defaultViteConfig({ outDir }), {
   define: {
     __PKG_VERSION__: JSON.stringify(mainPackage.version),
+    __PKG_HOMEPAGE__: JSON.stringify(mainPackage.homepage),
     __FULL_BUILD__: JSON.stringify(!liteBuild),
     __MERMAID_VERSION__: JSON.stringify(mermaidPackage.version),
   },

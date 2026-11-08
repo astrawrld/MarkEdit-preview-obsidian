@@ -4,6 +4,7 @@
  * Package version read from the `package.json` file.
  */
 declare const __PKG_VERSION__: string;
+declare const __PKG_HOMEPAGE__: string;
 
 /**
  * Whether to include all extensions, such as `mermaid`, `katex`, and `highlight.js`.

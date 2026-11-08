@@ -1,7 +1,8 @@
 {
-  "name": "markedit-preview",
-  "version": "1.14.1",
-  "description": "Markdown preview for MarkEdit.",
+  "name": "markedit-preview-obsidian",
+  "version": "1.14.1-obsidian.1",
+  "description": "Markdown preview for MarkEdit, with Obsidian flavored markdown. Fork of MarkEdit-preview.",
+  "homepage": "https://github.com/astrawrld/MarkEdit-preview-obsidian",
   "scripts": {
     "test": "vitest run",
     "lint": "eslint . --config eslint.config.mjs",
