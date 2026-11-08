@@ -8,6 +8,7 @@ import { createHiddenSyntaxExtension, hiddenSyntaxExtension } from '../../src/hi
 import { clearVaultCaches } from '../../src/features/vault';
 import { markdownExtensions } from '../support/markdown';
 import { wikilinkConfig } from '../support/wikilinks';
+import { wikilinkConfig as wikilinkConfigWithEmbeds } from '../support/wikilinksEmbeds';
 
 const markEditMock = vi.hoisted(() => ({
   playSystemBeep: undefined as (() => void) | undefined,
@@ -18,17 +19,21 @@ const markEditMock = vi.hoisted(() => ({
 
 vi.mock('markedit-api', () => ({ MarkEdit: markEditMock }));
 
+const parsers = { 'MarkEdit-wikilinks 0.1.3': wikilinkConfig, 'MarkEdit-wikilinks with embeds': wikilinkConfigWithEmbeds };
+let parser = wikilinkConfig;
+
 beforeEach(() => {
   markEditMock.playSystemBeep = undefined;
   markEditMock.listFiles = undefined;
   markEditMock.getFileInfo = undefined;
   markEditMock.openFile = undefined;
+  parser = wikilinkConfig;
   clearVaultCaches();
 });
 
 // Like MarkEdit with MarkEdit-wikilinks installed, which adds the WikiLink* syntax nodes
 function setUp(doc: string, extensions: Extension = hiddenSyntaxExtension, wikilinks = true) {
-  const language = markdown({ base: markdownLanguage, extensions: [...markdownExtensions, ...(wikilinks ? [wikilinkConfig] : [])] });
+  const language = markdown({ base: markdownLanguage, extensions: [...markdownExtensions, ...(wikilinks ? [parser] : [])] });
   window.editor = new EditorView({ doc, parent: document.body, extensions: [extensions, language] });
   window.editor.dispatch({ selection: { anchor: doc.length } });
 }
@@ -121,7 +126,12 @@ describe('Following wikilinks', () => {
   });
 });
 
-describe('Wikilink embeds', () => {
+// 0.1.3 parses embeds as Markdown images, the fixed parser as WikiLinkEmbed nodes, both must work
+describe.each(Object.entries(parsers))('Wikilink embeds with %s', (_name, config) => {
+  beforeEach(() => {
+    parser = config;
+  });
+
   test('shows image embeds inline, with their size', () => {
     setUp('![[my pic.png|300]] after', createHiddenSyntaxExtension(['image']));
     const image = window.editor.dom.querySelector<HTMLImageElement>('img.cm-md-syntaxHiddenImage');

@@ -8,18 +8,18 @@ const wikilinkPattern = /^(!?)\[\[([^[\]|\n]+)(?:\|([^[\]\n]*))?\]\]$/;
  * `[[Note]]`, `[[Note|alias]]`, `![[image.png|300]]` and `![[Note]]` in Mixed mode.
  *
  * Links are `WikiLink` nodes from MarkEdit-wikilinks' parser, so they only apply when it's installed.
- * Embeds are always parsed as Markdown images (`![` comes before MarkEdit-wikilinks' parser runs),
- * so they're recognized from the image's text and work without it.
+ * Embeds are `WikiLinkEmbed` nodes in versions of MarkEdit-wikilinks that parse them
+ * (https://github.com/nuc/MarkEdit-wikilinks/pull/1), otherwise Markdown images, recognized from their text.
  */
 export function wikilinkSyntax(node: SyntaxNodeRef, state: EditorState) {
-  if (node.name !== 'WikiLink' && node.name !== 'Image') {
+  if (node.name !== 'WikiLink' && !isEmbedNode(node.name)) {
     return;
   }
 
   const source = state.sliceDoc(node.from, node.to);
   const match = wikilinkPattern.exec(source);
   const embed = match?.[1] === '!';
-  if (match === null || embed !== (node.name === 'Image')) {
+  if (match === null || embed !== isEmbedNode(node.name)) {
     return;
   }
 
@@ -54,4 +54,11 @@ export function wikilinkSyntax(node: SyntaxNodeRef, state: EditorState) {
       { from: label.to, to: node.to },
     ],
   };
+}
+
+/**
+ * Image-like nodes, which Mixed mode reveals with the selection rather than collapsing at line ends.
+ */
+export function isEmbedNode(name: string) {
+  return name === 'Image' || name === 'WikiLinkEmbed';
 }

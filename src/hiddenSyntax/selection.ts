@@ -4,7 +4,7 @@ import { type Command, Direction, EditorView, keymap } from '@codemirror/view';
 import type { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { linkSyntax, referenceDestinationResolver } from './link';
 import { inlineSyntax } from './inline';
-import { wikilinkSyntax } from './wikilink';
+import { isEmbedNode, wikilinkSyntax } from './wikilink';
 import { renderedBlockDecorations } from './block';
 
 type SyntaxRange = { from: number; to: number };
@@ -120,7 +120,7 @@ function collapsedSyntaxSuffix(view: EditorView, pos: number) {
   const resolveDestination = referenceDestinationResolver(view.state);
   let suffix: { from: number; to: number } | undefined;
   for (let node: SyntaxNode | null = syntaxTree(view.state).resolveInner(pos, -1); node !== null; node = node.parent) {
-    if (node.name === 'Image') {
+    if (isEmbedNode(node.name)) {
       return;
     }
 
@@ -217,7 +217,7 @@ function lineEndChangesSyntax(view: EditorView, line: SyntaxRange, selection: Se
     from: line.from,
     to: line.to,
     enter: node => {
-      if (changed || node.name === 'Image') {
+      if (changed || isEmbedNode(node.name)) {
         return false;
       }
 
